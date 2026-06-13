@@ -1,0 +1,1027 @@
+================================================================================
+SCOPE DOCUMENT: NAIVE BAYES CLASSIFIER
+ML Internship Program | Topic Module 3
+Prepared by: Senior ML Engineer & MIT Educator
+================================================================================
+
+--------------------------------------------------------------------------------
+1. TOPIC OVERVIEW
+--------------------------------------------------------------------------------
+
+Naive Bayes is a family of probabilistic classification algorithms grounded in
+Bayes' Theorem. It is one of the oldest, fastest, and most interpretable
+machine learning algorithms in existence, yet it continues to power real-world
+systems at scale — from Gmail's spam filter to medical diagnosis support tools.
+
+Despite having the word "Naive" in its name (more on that in Section 5), Naive
+Bayes punches far above its weight. It is frequently used as a strong baseline
+before deploying more complex models and is a go-to algorithm for natural
+language processing (NLP) tasks.
+
+This module prepares you to:
+  - Understand the probabilistic foundations of the algorithm.
+  - Implement it from scratch using NumPy.
+  - Apply it using Scikit-learn on a real Kaggle dataset.
+  - Explain it confidently in FAANG-style interviews.
+
+Domain Focus: Text Classification (Spam Detection) and Healthcare Diagnosis.
+Dataset: Real Kaggle dataset (e.g., SMS Spam Collection Dataset or
+         Pima Indians Diabetes Dataset — both publicly available on Kaggle).
+
+--------------------------------------------------------------------------------
+2. LEARNING OBJECTIVES
+--------------------------------------------------------------------------------
+
+By the end of this module, you should be able to:
+
+  [LO-1]  Explain Bayes' Theorem in plain English and with mathematical notation.
+  [LO-2]  Describe what makes Naive Bayes "naive" and why it still works.
+  [LO-3]  Differentiate between Gaussian, Multinomial, and Bernoulli Naive Bayes.
+  [LO-4]  Identify which variant to use given a dataset and problem type.
+  [LO-5]  Implement Gaussian Naive Bayes from scratch using only NumPy.
+  [LO-6]  Use Scikit-learn's Naive Bayes classes with appropriate preprocessing.
+  [LO-7]  Evaluate a Naive Bayes classifier using precision, recall, F1, and ROC-AUC.
+  [LO-8]  Handle practical challenges: zero probabilities, continuous features,
+          class imbalance, and high-dimensional data.
+  [LO-9]  Compare Naive Bayes against Logistic Regression and KNN intelligently.
+  [LO-10] Answer the top 10 Naive Bayes interview questions fluently.
+
+--------------------------------------------------------------------------------
+3. PREREQUISITES
+--------------------------------------------------------------------------------
+
+Before starting this module, ensure you are comfortable with the following:
+
+  MATHEMATICS:
+  - Basic probability: P(A), P(A and B), P(A | B)
+  - Conditional probability and the multiplication rule
+  - Understanding of mean and variance (standard deviation)
+  - Logarithms (log rules, why log is used in ML for numerical stability)
+
+  PYTHON & LIBRARIES:
+  - Python 3.x fundamentals (functions, classes, loops)
+  - NumPy: array operations, np.mean(), np.std(), np.log(), np.exp()
+  - Pandas: loading and exploring a CSV dataset
+  - Scikit-learn: train_test_split, metrics (accuracy, classification_report)
+  - Matplotlib / Seaborn: basic plots (confusion matrix heatmap, bar charts)
+
+  MACHINE LEARNING BASICS:
+  - What is classification vs regression?
+  - What are training and test sets?
+  - What is a confusion matrix?
+  - What are precision, recall, and F1 score?
+
+  RECOMMENDED WARM-UP:
+  - Solve 10 basic conditional probability problems (e.g., from Khan Academy).
+  - Read about the difference between generative and discriminative models.
+
+--------------------------------------------------------------------------------
+4. WHAT IS NAIVE BAYES?
+--------------------------------------------------------------------------------
+
+Naive Bayes is a supervised learning algorithm used for classification tasks.
+Given a set of features describing an input (e.g., words in an email), it
+calculates the probability that the input belongs to each possible class (e.g.,
+spam or not spam) and assigns the class with the highest probability.
+
+Think of it like a doctor making a diagnosis:
+  - A patient presents with: fever, cough, and fatigue.
+  - The doctor thinks: "Given these symptoms, what disease is most probable?"
+  - The doctor uses past experience (training data) to estimate probabilities.
+  - The diagnosis is the class with the highest probability.
+
+Naive Bayes does exactly this — it uses the training data to learn how likely
+each feature is for each class, and at prediction time, it multiplies those
+likelihoods together to find the most probable class.
+
+It is called a GENERATIVE model because it models the joint probability of
+features and labels — unlike Logistic Regression, which is DISCRIMINATIVE and
+directly models the decision boundary.
+
+Key characteristics:
+  - Probabilistic: gives output as a class probability, not just a label.
+  - Fast: training is just computing means, variances, and frequencies.
+  - No iterative optimization: unlike gradient descent-based models.
+  - Works well with small data: requires much less training data than deep models.
+
+--------------------------------------------------------------------------------
+5. WHY IS IT CALLED "NAIVE"?
+--------------------------------------------------------------------------------
+
+The "Naive" part refers to a strong and mathematically convenient assumption:
+
+  >> ALL FEATURES ARE CONDITIONALLY INDEPENDENT GIVEN THE CLASS LABEL. <<
+
+In plain English: once you know the class, knowing the value of one feature
+tells you nothing new about the values of other features.
+
+REAL-WORLD ANALOGY (where this assumption is clearly WRONG):
+  Imagine classifying emails as spam using the words "free", "money", and
+  "winner". In reality, if an email contains "free" and "money", it is very
+  likely to also contain "winner" — they co-occur. These features are NOT
+  independent.
+
+  Naive Bayes ignores this correlation entirely and multiplies their
+  probabilities as if they were independently generated. This is the naive part.
+
+WHY DOES IT STILL WORK, THEN?
+  1. Even if the probability estimates are miscalibrated, the RANKING of classes
+     often remains correct — the right class still ends up with the highest score.
+  2. In many text classification tasks, the independence assumption, while
+     technically violated, does not harm classification performance significantly.
+  3. It acts as a strong regularizer — preventing overfitting in high-dimensional
+     spaces like text (where features can number in the tens of thousands).
+
+TAKEAWAY FOR INTERVIEWS:
+  "The naive assumption is rarely true in practice, but Naive Bayes is often
+   robust to violations of this assumption, especially in text classification."
+
+--------------------------------------------------------------------------------
+6. BAYES' THEOREM
+--------------------------------------------------------------------------------
+
+FINAL EQUATION:
+
+  P(C | X) = [ P(X | C) * P(C) ] / P(X)
+
+WHERE:
+  - P(C | X)   = POSTERIOR probability: probability of class C given features X.
+                 This is what we want to calculate and maximize.
+
+  - P(X | C)   = LIKELIHOOD: probability of observing features X given class C.
+                 This is learned from the training data.
+
+  - P(C)       = PRIOR probability: how common class C is in the training data.
+                 Example: if 20% of emails are spam, P(spam) = 0.20.
+
+  - P(X)       = EVIDENCE: probability of observing features X regardless of
+                 class. This is constant for all classes during prediction,
+                 so we IGNORE it when comparing classes.
+
+WHAT WE ACTUALLY COMPUTE (the decision rule):
+
+  C* = argmax_C [ P(C) * PRODUCT( P(x_i | C) for each feature x_i ) ]
+
+WHERE:
+  - C*         = the predicted class (the one with the highest posterior).
+  - argmax_C   = "the value of C that maximizes the expression".
+  - x_i        = the i-th feature value in the input vector X.
+  - PRODUCT    = multiply probabilities across all features (independence assumption).
+
+LOG-SPACE VERSION (used in practice to avoid numerical underflow):
+
+  C* = argmax_C [ log P(C) + SUM( log P(x_i | C) ) ]
+
+WHY THIS MATTERS:
+  When multiplying hundreds of small probabilities (e.g., word probabilities in
+  a document), the result can underflow to zero in floating-point arithmetic.
+  Taking the log converts multiplications into additions, which is numerically
+  stable. Since log is a monotonically increasing function, argmax is preserved.
+
+SIGNIFICANCE OF BAYES' THEOREM:
+  Bayes' Theorem is the mathematical foundation for updating belief in light of
+  new evidence. It connects what we know BEFORE seeing data (prior) with what
+  the data tells us (likelihood) to produce an updated belief (posterior).
+  This is the most principled way to make probabilistic decisions.
+
+--------------------------------------------------------------------------------
+7. CONDITIONAL PROBABILITY
+--------------------------------------------------------------------------------
+
+Conditional probability P(A | B) means: "What is the probability of event A,
+GIVEN THAT we know event B has already occurred?"
+
+EXAMPLE (Healthcare):
+  Let A = "Patient has diabetes"
+  Let B = "Patient has high blood glucose"
+
+  P(A | B) = probability of diabetes GIVEN high blood glucose.
+  This is different from P(A) = probability of diabetes in the general population.
+
+  Knowing B changes our estimate of A — that's the essence of conditioning.
+
+THE CHAIN RULE (used internally by Naive Bayes):
+
+  P(X, C) = P(X | C) * P(C)
+
+  This reads: "The joint probability of features X and class C equals the
+  probability of X given C, multiplied by the prior probability of C."
+
+INDEPENDENCE:
+  Two events A and B are independent if:
+    P(A | B) = P(A)   ... knowing B tells you nothing about A.
+
+  Naive Bayes ASSUMES this holds for all pairs of features given the class.
+  In practice, this is almost never true, but the algorithm often works anyway.
+
+--------------------------------------------------------------------------------
+8. CORE ASSUMPTIONS OF NAIVE BAYES
+--------------------------------------------------------------------------------
+
+ASSUMPTION 1: CONDITIONAL FEATURE INDEPENDENCE
+  Given the class label, all features are independent of each other.
+  Mathematically: P(x_1, x_2, ..., x_n | C) = PRODUCT( P(x_i | C) )
+
+  VIOLATION EXAMPLE: In a medical dataset, blood pressure and cholesterol are
+  correlated — high blood pressure often accompanies high cholesterol. Naive
+  Bayes ignores this.
+
+ASSUMPTION 2: EQUAL IMPORTANCE OF FEATURES (IMPLICIT)
+  Naive Bayes does not learn feature weights. It treats each feature as equally
+  contributing to the final decision (unlike Logistic Regression, which assigns
+  learned weights).
+
+ASSUMPTION 3: FEATURES ARE DRAWN FROM A KNOWN DISTRIBUTION
+  - Gaussian NB assumes continuous features follow a Normal distribution.
+  - Multinomial NB assumes features are counts (e.g., word frequencies).
+  - Bernoulli NB assumes features are binary (e.g., word present/absent).
+
+  Violating these distributional assumptions degrades performance.
+
+WHAT HAPPENS WHEN ASSUMPTIONS ARE VIOLATED?
+  - The probability estimates (posteriors) become poorly calibrated.
+  - But the argmax (predicted class) may still be correct.
+  - Think of it as: "wrong about how confident, but right about what to predict."
+
+--------------------------------------------------------------------------------
+9. TYPES OF NAIVE BAYES
+--------------------------------------------------------------------------------
+
+9a. GAUSSIAN NAIVE BAYES
+-----------------------------
+
+WHEN TO USE: When features are continuous and (approximately) normally distributed.
+EXAMPLES: Medical datasets (age, BMI, glucose levels), sensor readings.
+
+KAGGLE DATASET EXAMPLE: Pima Indians Diabetes Dataset
+  Features: Pregnancies, Glucose, BloodPressure, SkinThickness, Insulin, BMI,
+            DiabetesPedigreeFunction, Age.
+  All features are continuous → Gaussian NB is appropriate.
+
+HOW IT WORKS:
+  For each class C and each feature x_i, we estimate:
+    - Mean (μ_ic): average value of feature x_i among training samples of class C.
+    - Variance (σ²_ic): variance of feature x_i among training samples of class C.
+
+LIKELIHOOD EQUATION:
+
+  P(x_i | C) = (1 / sqrt(2 * π * σ²_ic)) * exp( -(x_i - μ_ic)² / (2 * σ²_ic) )
+
+WHERE:
+  - x_i    = the observed value of feature i
+  - μ_ic   = mean of feature i for class C (learned from training data)
+  - σ²_ic  = variance of feature i for class C (learned from training data)
+  - π      = mathematical constant (~3.14159)
+  - exp()  = the exponential function (e to the power of)
+
+INTUITION: We fit a bell curve to each feature for each class. The taller and
+  narrower the bell curve at point x_i, the more likely that value is for that class.
+
+KEY PARAMETER: var_smoothing (in Scikit-learn) — adds a small fraction of the
+  largest variance to all variances to prevent numerical instability when a
+  feature has zero variance.
+
+
+9b. MULTINOMIAL NAIVE BAYES
+-----------------------------
+
+WHEN TO USE: When features represent COUNTS or FREQUENCIES (non-negative integers).
+MOST COMMON USE: Text classification with Bag-of-Words or TF-IDF representations.
+EXAMPLE: Classifying spam email based on word frequencies.
+
+KAGGLE DATASET EXAMPLE: SMS Spam Collection Dataset
+  Features: Frequency of each word in the vocabulary (word count vector).
+  Labels: "spam" or "ham" (not spam).
+
+HOW IT WORKS:
+  For each class C and each feature (word/token) x_i, we estimate the
+  probability of that feature occurring given the class.
+
+LIKELIHOOD EQUATION:
+
+  P(x_i | C) = (count(x_i, C) + α) / (count(all_words, C) + α * |V|)
+
+WHERE:
+  - count(x_i, C)       = number of times word x_i appears in class C documents
+  - count(all_words, C) = total number of words in all class C documents
+  - α                   = Laplace smoothing parameter (usually 1)
+  - |V|                 = vocabulary size (total number of unique words)
+
+INTUITION: If "free" appears 500 times in spam emails but only 10 times in ham
+  emails, P("free" | spam) will be much higher than P("free" | ham). The
+  algorithm uses this contrast to detect spam.
+
+KEY PARAMETER: alpha — Laplace smoothing constant. Essential to prevent zero
+  probabilities for words not seen during training.
+
+
+9c. BERNOULLI NAIVE BAYES
+-----------------------------
+
+WHEN TO USE: When features are BINARY — each feature is either present (1) or
+  absent (0). Not about how many times, just whether it appeared at all.
+EXAMPLE: Document classification where you only care if a word appears, not how often.
+
+DIFFERENCE FROM MULTINOMIAL:
+  - Multinomial: uses word COUNTS (how many times does "free" appear?)
+  - Bernoulli: uses word PRESENCE (does "free" appear at all? yes=1, no=0)
+
+LIKELIHOOD EQUATION:
+
+  P(x_i | C) = P_ic^(x_i) * (1 - P_ic)^(1 - x_i)
+
+WHERE:
+  - x_i   = binary feature value (0 or 1)
+  - P_ic  = probability that feature i is present (=1) in class C
+            = (count of class C docs containing feature i + α) /
+              (count of class C docs + 2α)
+
+INTUITION: If x_i = 1 (feature present), P_ic is used. If x_i = 0 (absent),
+  (1 - P_ic) is used. CRUCIALLY, Bernoulli NB explicitly penalizes the ABSENCE
+  of a word, while Multinomial NB ignores absent words entirely.
+
+WHEN BERNOULLI OUTPERFORMS MULTINOMIAL:
+  Short documents (like tweets or SMS) where presence/absence matters more than
+  frequency, and where the vocabulary is small.
+
+KEY PARAMETER: alpha — same Laplace smoothing as Multinomial NB.
+
+SUMMARY TABLE:
+  +-----------------------+------------------+------------------+------------------+
+  | Property              | Gaussian NB      | Multinomial NB   | Bernoulli NB     |
+  +-----------------------+------------------+------------------+------------------+
+  | Feature type          | Continuous       | Count/Frequency  | Binary (0/1)     |
+  | Distribution assumed  | Normal (Gaussian)| Multinomial      | Bernoulli        |
+  | Primary use case      | Medical, tabular | Text (BoW)       | Text (short doc) |
+  | Zero handling         | var_smoothing    | Laplace (alpha)  | Laplace (alpha)  |
+  | Penalizes absence?    | N/A              | No               | Yes              |
+  +-----------------------+------------------+------------------+------------------+
+
+--------------------------------------------------------------------------------
+10. STEP-BY-STEP WORKING OF THE ALGORITHM
+--------------------------------------------------------------------------------
+
+Let's walk through spam classification as a concrete example.
+Dataset: SMS Spam Collection (Kaggle). Features: word counts. Labels: spam/ham.
+
+TRAINING PHASE:
+-----------------
+STEP 1 — COMPUTE CLASS PRIORS:
+  Count how many messages are spam and ham in the training data.
+  P(spam) = (number of spam messages) / (total messages)
+  P(ham)  = (number of ham messages) / (total messages)
+
+  Example: 747 spam, 4179 ham out of 4926 total.
+  P(spam) = 747/4926 ≈ 0.152
+  P(ham)  = 4179/4926 ≈ 0.848
+
+STEP 2 — COMPUTE LIKELIHOODS:
+  For each word in the vocabulary, compute how often it appears in spam vs ham.
+  Apply Laplace smoothing to handle words with zero count.
+
+  P("free" | spam) = (count of "free" in spam + 1) / (total words in spam + |V|)
+  P("free" | ham)  = (count of "free" in ham + 1)  / (total words in ham + |V|)
+
+PREDICTION PHASE:
+------------------
+STEP 3 — NEW MESSAGE ARRIVES:
+  New message: "Congratulations! You won a free prize."
+  Tokenize: ["congratulations", "you", "won", "a", "free", "prize"]
+
+STEP 4 — COMPUTE POSTERIOR FOR EACH CLASS (in log space):
+  log_score(spam) = log P(spam)
+                  + log P("congratulations" | spam)
+                  + log P("you" | spam)
+                  + log P("won" | spam)
+                  + log P("a" | spam)
+                  + log P("free" | spam)
+                  + log P("prize" | spam)
+
+  log_score(ham)  = log P(ham)
+                  + log P("congratulations" | ham)
+                  + ... (same words)
+
+STEP 5 — PREDICT THE CLASS:
+  C* = argmax( log_score(spam), log_score(ham) )
+  If log_score(spam) > log_score(ham), classify as SPAM.
+
+STEP 6 — OPTIONAL: COMPUTE PROBABILITY:
+  Convert log scores back to probabilities using the softmax function to get
+  a calibrated probability output (e.g., "94.3% probability of spam").
+
+--------------------------------------------------------------------------------
+11. REAL-WORLD APPLICATIONS
+--------------------------------------------------------------------------------
+
+1. SPAM DETECTION (Text — Multinomial/Bernoulli NB):
+   Gmail, Yahoo Mail, and Outlook all use or have used Naive Bayes variants
+   to classify emails as spam or not spam in real time. It is lightweight
+   enough to run on millions of emails per second.
+
+2. MEDICAL DIAGNOSIS (Tabular — Gaussian NB):
+   Example: Predicting whether a patient has diabetes using clinical measurements
+   like blood glucose, BMI, and age (Pima Indians Diabetes Dataset on Kaggle).
+   Naive Bayes provides not just a prediction but a PROBABILITY, which clinicians
+   can use to prioritize high-risk patients for further testing.
+   NOTE: In healthcare, interpretability and calibrated probabilities matter
+   as much as accuracy. Naive Bayes excels at both.
+
+3. SENTIMENT ANALYSIS (Text — Multinomial NB):
+   Classifying product reviews on Amazon or Flipkart as positive, negative, or
+   neutral based on the words used.
+
+4. DOCUMENT CATEGORIZATION (Text — Multinomial NB):
+   Automatically tagging news articles into categories: Sports, Politics,
+   Technology, Entertainment. Used by Reuters and the BBC.
+
+5. REAL-TIME RECOMMENDATIONS (Multi-class):
+   Categorizing user intent from search queries or chatbot messages to route
+   them to the right response category.
+
+6. CYBERSECURITY (Bernoulli NB):
+   Detecting network intrusion events or phishing URLs based on binary feature
+   sets (e.g., does the URL contain an IP address? does it use HTTPS? etc.)
+
+--------------------------------------------------------------------------------
+12. ADVANTAGES AND LIMITATIONS
+--------------------------------------------------------------------------------
+
+ADVANTAGES:
+  [+] Extremely fast: O(n * d) training time (n = samples, d = features).
+  [+] Works well with high-dimensional data (e.g., text with 50,000 word features).
+  [+] Handles small datasets better than most ML algorithms.
+  [+] Naturally supports multi-class classification.
+  [+] Outputs calibrated probabilities (useful in healthcare).
+  [+] Robust to irrelevant features (they contribute weakly and wash out).
+  [+] Incremental learning: can update with new data without full retraining.
+  [+] No hyperparameter tuning needed (except smoothing constant alpha).
+
+LIMITATIONS:
+  [-] The independence assumption is almost always violated in real data.
+  [-] Poorly calibrated posterior probabilities (though ranking is often correct).
+  [-] Gaussian NB is sensitive to features that are NOT normally distributed.
+  [-] Zero probability problem: if a feature-class combination was never seen
+      in training, the entire product collapses to zero (mitigated by smoothing).
+  [-] Cannot learn feature interactions or non-linear decision boundaries.
+  [-] Less accurate than ensemble methods (Random Forest, XGBoost) on structured data.
+  [-] Continuous features modeled incorrectly if the Gaussian assumption is wrong.
+
+--------------------------------------------------------------------------------
+13. NAIVE BAYES VS LOGISTIC REGRESSION
+--------------------------------------------------------------------------------
+
+These two algorithms are frequent comparison subjects in interviews. Here is
+a structured, honest comparison:
+
+CONCEPTUAL DIFFERENCE:
+  - Naive Bayes is GENERATIVE: models P(X | C) and P(C) separately, then
+    uses Bayes' theorem to infer P(C | X).
+  - Logistic Regression is DISCRIMINATIVE: directly models P(C | X) by
+    learning a decision boundary.
+
+Think of it this way:
+  - Generative model (NB): "I'll study what spam looks like and what ham looks
+    like separately, then see which one your email looks more like."
+  - Discriminative model (LR): "I'll just learn the LINE that separates spam
+    from ham, without caring about what each class looks like individually."
+
+  +------------------------+---------------------------+---------------------------+
+  | Property               | Naive Bayes               | Logistic Regression       |
+  +------------------------+---------------------------+---------------------------+
+  | Model type             | Generative                | Discriminative            |
+  | Training speed         | Very fast (no iterations) | Moderate (gradient descent)|
+  | Small data performance | Better                    | Worse (needs more data)   |
+  | Feature independence   | Assumed                   | Not assumed               |
+  | Handles correlated     | Poorly                    | Better                    |
+  |   features             |                           |                           |
+  | Probability estimates  | Less calibrated           | Well-calibrated           |
+  | Interpretability       | High                      | High                      |
+  | Accuracy on text data  | Competitive               | Often better with more data|
+  | Regularization         | Via smoothing             | L1/L2 regularization      |
+  | Multiclass support     | Native                    | One-vs-rest or softmax    |
+  +------------------------+---------------------------+---------------------------+
+
+RULE OF THUMB:
+  - Small dataset, fast prototype, text data → Naive Bayes.
+  - Larger dataset, correlated features, need calibrated probabilities → Logistic Regression.
+
+--------------------------------------------------------------------------------
+14. NAIVE BAYES VS K-NEAREST NEIGHBORS
+--------------------------------------------------------------------------------
+
+  +------------------------+---------------------------+---------------------------+
+  | Property               | Naive Bayes               | K-Nearest Neighbors (KNN) |
+  +------------------------+---------------------------+---------------------------+
+  | Type                   | Probabilistic / Generative| Instance-based / Lazy     |
+  | Training time          | O(n * d)                  | O(1) — no training!       |
+  | Prediction time        | O(d)                      | O(n * d) — very slow!     |
+  | Memory usage           | Low (stores parameters)   | High (stores ALL data)    |
+  | Handles high-dim data  | Yes                       | No (curse of dimensionality)|
+  | Interpretability       | High                      | Low                       |
+  | Sensitive to scale?    | No                        | Yes (needs normalization) |
+  | Probabilistic output   | Yes                       | Not naturally             |
+  | Works on text          | Very well                 | Poorly                    |
+  +------------------------+---------------------------+---------------------------+
+
+KEY INSIGHT: KNN is a non-parametric lazy learner — it memorizes training data
+  and makes predictions at query time. This makes KNN unusable for large-scale
+  real-time applications like spam filtering, where Naive Bayes thrives.
+
+--------------------------------------------------------------------------------
+15. PRACTICAL CHALLENGES AND COMMON FAILURE MODES
+--------------------------------------------------------------------------------
+
+CHALLENGE 1: ZERO PROBABILITY (THE ZERO FREQUENCY PROBLEM)
+  PROBLEM: If a word appears in the test set but was never seen during training
+    for class C, then P(word | C) = 0, which makes the entire product = 0.
+    The model will NEVER predict class C for this sample, regardless of all
+    other evidence. This is catastrophic.
+  SOLUTION: LAPLACE SMOOTHING (Add-1 Smoothing) — add a small constant (α=1)
+    to all counts, ensuring no probability is ever exactly zero.
+    For Gaussian NB, use var_smoothing to handle near-zero variances.
+
+CHALLENGE 2: THE INDEPENDENCE ASSUMPTION
+  PROBLEM: In almost all real datasets, features are correlated. In text data,
+    words like "machine" and "learning" co-occur far more than expected by
+    chance. Naive Bayes double-counts correlated evidence.
+  MITIGATION: Feature selection (remove highly correlated features), use
+    Logistic Regression when correlations are severe.
+
+CHALLENGE 3: CLASS IMBALANCE
+  PROBLEM: If spam makes up only 5% of the training data, the model will be
+    biased toward predicting ham. The prior P(spam) = 0.05 is very small.
+  SOLUTION: Use class_prior parameter in Scikit-learn to override learned
+    priors, or use oversampling (SMOTE), or adjust classification threshold.
+
+CHALLENGE 4: FEATURE DISTRIBUTION MISMATCH (GAUSSIAN NB)
+  PROBLEM: Gaussian NB assumes features are normally distributed. If they are
+    heavily skewed (e.g., income, word counts), the likelihood estimates will
+    be wrong.
+  SOLUTION: Apply log transform or Box-Cox transform to normalize skewed features
+    before using Gaussian NB.
+
+CHALLENGE 5: HIGH VOCABULARY SIZE IN TEXT
+  PROBLEM: With 50,000+ words, storing probabilities for all word-class
+    combinations is memory-intensive.
+  SOLUTION: Use TF-IDF with max_features=10000 to limit vocabulary, or use
+    HashingVectorizer for memory efficiency.
+
+FAILURE MODE 1: NAIVE BAYES IS OVERCONFIDENT
+  Because of the independence assumption, the model sometimes assigns probabilities
+  very close to 0 or 1 — far too confidently. Use Platt scaling or isotonic
+  regression (CalibratedClassifierCV in Scikit-learn) to post-process outputs
+  into better-calibrated probabilities.
+
+FAILURE MODE 2: FEATURE SCALING IRRELEVANCE
+  Naive Bayes does NOT require feature scaling (unlike SVM, KNN, or neural nets).
+  Applying StandardScaler to features before Gaussian NB actually doesn't hurt
+  but is unnecessary. Students often apply it out of habit.
+
+FAILURE MODE 3: APPLYING MULTINOMIAL NB TO NEGATIVE VALUES
+  Multinomial NB requires non-negative feature values (it models counts).
+  TF-IDF values are non-negative, but mean-centered or log-scaled features
+  can be negative. This will cause errors or incorrect behavior.
+  FIX: Use Gaussian NB for TF-IDF, or MinMaxScaler to bring values to [0, 1].
+
+--------------------------------------------------------------------------------
+16. HANDLING CONTINUOUS AND CATEGORICAL FEATURES
+--------------------------------------------------------------------------------
+
+CONTINUOUS FEATURES:
+  Use Gaussian Naive Bayes. The algorithm estimates μ and σ² for each feature
+  per class from training data and uses the Gaussian PDF to compute likelihoods.
+
+  If features are NOT normally distributed:
+    a) Apply log1p transform: np.log1p(X) — useful for count-like features.
+    b) Apply Box-Cox or Yeo-Johnson transform using PowerTransformer.
+    c) Consider using a different algorithm if distribution is multimodal.
+
+CATEGORICAL FEATURES:
+  - If you have a single categorical feature encoded as integers (e.g., color:
+    0=red, 1=blue, 2=green), do NOT use Gaussian NB — it will treat these as
+    continuous and compute meaningless means/variances.
+  - Use CategoricalNB (available in Scikit-learn 0.24+), which natively handles
+    ordinal-encoded categorical features.
+  - Alternatively, one-hot encode and use Bernoulli NB (binary presence/absence).
+
+MIXED FEATURES (continuous + categorical):
+  One practical approach:
+  a) Split features: apply Gaussian NB to continuous, Bernoulli to binary.
+  b) Compute log-likelihoods from each separately and sum them (log space is additive).
+  c) This can be implemented manually in NumPy.
+  
+  In Scikit-learn, there is no built-in "Mixed NB", so the manual approach or
+  ColumnTransformer with separate pipelines is recommended.
+
+ORDINAL ENCODING WARNING:
+  Never apply ordinal encoding (LabelEncoder) to nominal (non-ordered) categorical
+  features before Gaussian NB. The algorithm will incorrectly infer ordering.
+
+--------------------------------------------------------------------------------
+17. IMPLEMENTATION PLAN
+--------------------------------------------------------------------------------
+
+17a. FROM SCRATCH USING NUMPY
+-------------------------------
+
+TARGET: Implement Gaussian Naive Bayes for the Pima Indians Diabetes Dataset.
+
+IMPLEMENTATION STEPS:
+  STEP 1 — Load and explore the dataset using Pandas.
+  STEP 2 — Split into train/test sets (80/20) using train_test_split.
+  STEP 3 — Implement GaussianNaiveBayes class with:
+             - fit(X_train, y_train):
+               * Compute class priors: P(C) for each class.
+               * Compute per-class mean and variance for each feature.
+             - predict(X_test):
+               * For each sample, compute log-posterior for each class.
+               * Return the class with the highest log-posterior.
+             - predict_proba(X_test):
+               * Return softmax of log-posteriors as probabilities.
+  STEP 4 — Evaluate using accuracy, confusion matrix, classification_report.
+  STEP 5 — Compare results with Scikit-learn's GaussianNB.
+
+NUMPY FUNCTIONS YOU WILL USE:
+  - np.unique(), np.mean(), np.var()     → for computing priors and parameters
+  - np.log(), np.sum()                   → log-space computation
+  - np.exp(), np.pi                      → Gaussian PDF computation
+  - np.argmax()                          → prediction step
+
+SAMPLE CLASS SKELETON:
+
+  class GaussianNaiveBayes:
+      def fit(self, X, y):
+          # Store classes, priors, means, variances
+          pass
+
+      def _gaussian_log_likelihood(self, class_idx, x):
+          # Compute log of Gaussian PDF for all features
+          pass
+
+      def predict(self, X):
+          # Compute log posteriors, return argmax
+          pass
+
+KEY CHALLENGE TO IMPLEMENT: Log-space computation to prevent underflow.
+KEY INSIGHT TO DEMONSTRATE: Match your from-scratch results to Scikit-learn.
+
+
+17b. USING SCIKIT-LEARN
+--------------------------
+
+TARGET: Implement both spam detection (Multinomial NB) and diabetes prediction
+  (Gaussian NB) using Scikit-learn pipelines.
+
+SPAM DETECTION PIPELINE (SMS Spam Collection Dataset):
+  STEP 1 — Load dataset: label and text columns.
+  STEP 2 — Text preprocessing:
+             - Lowercase, remove punctuation, remove stopwords.
+             - Tokenization using NLTK or simple split.
+  STEP 3 — Feature extraction:
+             - CountVectorizer or TfidfVectorizer with max_features=5000.
+  STEP 4 — Pipeline:
+             Pipeline([('tfidf', TfidfVectorizer()), ('nb', MultinomialNB(alpha=1.0))])
+  STEP 5 — Train and evaluate with classification_report.
+  STEP 6 — Hyperparameter tuning: GridSearchCV over alpha values [0.1, 0.5, 1.0, 2.0].
+  STEP 7 — Plot confusion matrix using seaborn heatmap.
+  STEP 8 — Visualize top 20 most predictive words for spam vs ham.
+
+DIABETES PREDICTION (Pima Indians Dataset):
+  STEP 1 — Load dataset, handle zeros as missing values (glucose, BMI, etc.)
+  STEP 2 — Impute missing values with median using SimpleImputer.
+  STEP 3 — (Optional) Normalize using StandardScaler — not required but good practice.
+  STEP 4 — Apply GaussianNB(var_smoothing=1e-9).
+  STEP 5 — Evaluate with precision, recall, F1, and ROC-AUC score.
+  STEP 6 — Plot ROC curve.
+  STEP 7 — Use CalibratedClassifierCV to improve probability calibration.
+
+SCIKIT-LEARN CLASSES TO COVER:
+  - GaussianNB(var_smoothing=...)
+  - MultinomialNB(alpha=...)
+  - BernoulliNB(alpha=..., binarize=...)
+  - ComplementNB(alpha=...) — a variant of Multinomial NB that works better on
+    imbalanced datasets (worth mentioning in the README).
+  - CalibratedClassifierCV(base_estimator=..., method='sigmoid')
+
+--------------------------------------------------------------------------------
+18. EVALUATION METRICS FOR CLASSIFICATION
+--------------------------------------------------------------------------------
+
+For both spam detection and medical diagnosis, accuracy alone is MISLEADING.
+If 95% of patients are healthy, a model that always predicts "healthy" achieves
+95% accuracy while being completely useless.
+
+KEY METRICS TO USE:
+
+CONFUSION MATRIX:
+  A 2x2 table showing True Positives (TP), False Positives (FP),
+  True Negatives (TN), and False Negatives (FN).
+
+PRECISION:
+  P = TP / (TP + FP)
+  "Of all the patients we flagged as diabetic, how many actually are?"
+  High precision = fewer false alarms.
+
+RECALL (SENSITIVITY):
+  R = TP / (TP + FN)
+  "Of all the actually diabetic patients, how many did we correctly catch?"
+  High recall = fewer missed cases. CRITICAL in healthcare!
+
+F1 SCORE:
+  F1 = 2 * (P * R) / (P + R)
+  Harmonic mean of precision and recall. Use when you need balance between both.
+
+ROC-AUC:
+  Area Under the Receiver Operating Characteristic Curve. Measures model's
+  ability to distinguish between classes across all thresholds. Score of 0.5 =
+  random guess, 1.0 = perfect classifier.
+
+WHICH TO USE WHEN:
+  - Medical diagnosis: prioritize RECALL (missing a sick patient is more costly).
+  - Spam detection: prioritize PRECISION (false spam is annoying but not dangerous).
+  - General use: F1 score or ROC-AUC for imbalanced datasets.
+
+LOG LOSS (Cross-Entropy Loss):
+  Measures the quality of probability estimates — how well-calibrated the model
+  is. Lower is better. Useful when you care about output probabilities, not just
+  the final label.
+
+--------------------------------------------------------------------------------
+19. HYPERPARAMETERS AND THEIR SIGNIFICANCE
+--------------------------------------------------------------------------------
+
+GAUSSIAN NB:
+  - var_smoothing (default: 1e-9):
+    Adds a fraction of the maximum variance across all features to each
+    feature's variance. Prevents division by zero and handles features with
+    near-zero variance.
+    TUNING: Increase if predictions are unstable or NaN values appear.
+
+MULTINOMIAL NB:
+  - alpha (default: 1.0):
+    Laplace smoothing constant. Added to all word counts to prevent zero
+    probabilities. alpha=1 is Add-1 smoothing. alpha=0 means no smoothing.
+    TUNING: Smaller alpha (0.1) works better for large, diverse datasets.
+    Use GridSearchCV with alpha in [0.01, 0.1, 0.5, 1.0, 2.0].
+
+BERNOULLI NB:
+  - alpha (default: 1.0): Same as Multinomial NB — Laplace smoothing.
+  - binarize (default: 0.0):
+    Threshold for converting continuous features to binary. Values above
+    binarize are set to 1, below are set to 0. Set to None if your features
+    are already binary.
+
+ALL NB VARIANTS:
+  - class_prior (default: None):
+    Manually override the learned class prior probabilities. Useful when the
+    training set distribution doesn't reflect real-world class distribution.
+    Example: class_prior=[0.05, 0.95] for 5% spam in real world.
+
+  - fit_prior (default: True):
+    Whether to learn class priors from data. If False, uniform priors are used.
+    Set to False if you don't trust your training set to represent the real class
+    balance.
+
+PREPROCESSING HYPERPARAMETERS (for text):
+  - max_features (in TfidfVectorizer/CountVectorizer):
+    Limits vocabulary size to the top N most frequent terms. Controls model
+    complexity and memory. Typical values: 5000–50000.
+  - ngram_range (e.g., (1,2) for unigrams + bigrams):
+    Captures short phrases. Often improves Multinomial NB performance on text.
+
+--------------------------------------------------------------------------------
+20. TOP 10 INTERVIEW QUESTIONS WITH ANSWERS
+--------------------------------------------------------------------------------
+
+Q1: What makes Naive Bayes "naive"?
+A1: The naive assumption that all features are conditionally independent given
+    the class label. This means we assume P(x1, x2, ..., xn | C) =
+    PRODUCT(P(xi | C)), which simplifies computation enormously. In reality,
+    features are often correlated, but the algorithm still performs well because
+    the ranking of class probabilities remains approximately correct even when
+    individual probability estimates are off.
+
+Q2: Why does Naive Bayes work so well despite its unrealistic assumption?
+A2: Two main reasons. First, for classification we only need the correct argmax,
+    not accurate probabilities — even with biased estimates, the right class
+    often wins. Second, the independence assumption provides implicit
+    regularization, preventing overfitting in high-dimensional settings like
+    text classification where there are far more features than samples.
+
+Q3: How do you handle the zero probability problem?
+A3: By applying Laplace Smoothing (Add-alpha smoothing). We add a small constant
+    alpha (typically 1) to all feature-class counts before computing probabilities.
+    This ensures no probability is ever exactly zero, preventing any single
+    unseen feature from collapsing the entire posterior to zero. In code, this is
+    the alpha parameter in MultinomialNB and BernoulliNB.
+
+Q4: When would you choose Multinomial NB over Bernoulli NB?
+A4: Multinomial NB is preferred when word frequency matters (longer documents,
+    topic classification). Bernoulli NB is preferred for short texts (SMS,
+    tweets) or when you only care whether a term appears, not how often.
+    Bernoulli NB also explicitly penalizes the absence of a word, which can be
+    useful for distinguishing classes where absence is informative.
+
+Q5: Is Naive Bayes a generative or discriminative model? Why does it matter?
+A5: Generative. It models the joint distribution P(X, C) = P(X|C) * P(C) and
+    uses Bayes' theorem to derive the posterior P(C|X). This matters because:
+    (1) it requires less data to estimate parameters vs discriminative models,
+    (2) it can generate synthetic data from P(X|C), and (3) its probability
+    estimates can be less accurate than discriminative models like Logistic
+    Regression on large datasets. Generative models converge to their optimal
+    solution faster with fewer training samples.
+
+Q6: What happens if you apply Multinomial Naive Bayes to negative feature values?
+A6: Multinomial NB assumes features represent counts or frequencies, so all
+    values must be non-negative. Negative values violate this assumption and
+    produce incorrect probability calculations or raise an error in Scikit-learn.
+    This is a common mistake when using mean-centered or standardized TF-IDF
+    features with MultinomialNB — use GaussianNB or non-negative transformations
+    like MinMaxScaler in that case.
+
+Q7: How does Naive Bayes handle multi-class classification?
+A7: Naturally — it computes a posterior probability P(C|X) for every class C
+    and picks the argmax. No modification is needed (unlike SVM or Logistic
+    Regression, which require one-vs-rest or one-vs-one strategies). The
+    computation scales linearly with the number of classes.
+
+Q8: Can Naive Bayes overfit? What prevents it?
+A8: Naive Bayes is much less prone to overfitting than many algorithms. Two
+    reasons: (1) it estimates only mean and variance per feature per class
+    (very few parameters relative to data), and (2) the independence assumption
+    acts as a regularizer that prevents the model from "memorizing" complex
+    feature interactions. In practice, Naive Bayes underfits more often than
+    it overfits.
+
+Q9: How would you improve a Naive Bayes model that performs poorly?
+A9: Several approaches:
+    (a) Fix preprocessing: better text cleaning, stemming, removing stopwords.
+    (b) Feature engineering: add n-grams, character-level features.
+    (c) Tune alpha: try smaller values for large datasets.
+    (d) Try ComplementNB: often outperforms MultinomialNB on imbalanced text datasets.
+    (e) Calibrate probabilities: use CalibratedClassifierCV.
+    (f) Use as an ensemble member: combine with Logistic Regression or SVM.
+    (g) If performance is fundamentally limited, switch to Logistic Regression
+        or a gradient boosted tree model.
+
+Q10: What is the time complexity of training and prediction in Naive Bayes?
+A10: Training: O(n * d), where n = number of training samples and d = number
+     of features. We compute mean and variance for each (feature, class) pair.
+     Prediction: O(c * d), where c = number of classes and d = features.
+     For each test sample, we compute log-likelihoods for each class. This makes
+     Naive Bayes one of the fastest classifiers for both training and inference —
+     critical for large-scale real-time applications like email filtering.
+
+--------------------------------------------------------------------------------
+21. COMMON MISTAKES STUDENTS MAKE
+--------------------------------------------------------------------------------
+
+MISTAKE 1: Applying StandardScaler before Multinomial NB.
+  IMPACT: Creates negative values → breaks MultinomialNB.
+  FIX: Use MinMaxScaler or no scaler with MultinomialNB/BernoulliNB.
+
+MISTAKE 2: Not applying Laplace smoothing in the from-scratch implementation.
+  IMPACT: Zero probability for unseen words → NaN in log computation.
+  FIX: Add alpha to numerator and alpha * |V| to denominator in likelihood.
+
+MISTAKE 3: Confusing prior, likelihood, and posterior.
+  IMPACT: Cannot explain the algorithm in interviews.
+  FIX: Memorize: Prior = what we know before data. Likelihood = what data tells
+  us. Posterior = updated belief after combining both.
+
+MISTAKE 4: Using accuracy as the only metric on imbalanced data.
+  IMPACT: Model appears great (95% accuracy) but is practically useless.
+  FIX: Always report precision, recall, F1, and ROC-AUC for classification tasks.
+
+MISTAKE 5: Using Gaussian NB on binary or count features.
+  IMPACT: The Gaussian assumption is completely wrong; probability estimates
+  are meaningless.
+  FIX: Match the NB variant to the feature type.
+
+MISTAKE 6: Forgetting to handle zeros in the Pima Diabetes dataset.
+  IMPACT: Zero values for glucose, BMI, or blood pressure are physiologically
+  impossible — they represent missing values. Including them will bias the
+  mean and variance estimates.
+  FIX: Replace zeros with NaN and impute using median.
+
+MISTAKE 7: Computing probability in linear space instead of log space.
+  IMPACT: Multiplying thousands of small probabilities produces numerical underflow.
+  FIX: Always compute in log space: SUM(log P(xi|C)) instead of PRODUCT(P(xi|C)).
+
+MISTAKE 8: Not comparing from-scratch results to Scikit-learn.
+  IMPACT: Bugs in the NumPy implementation go undetected.
+  FIX: Run both on the same dataset and verify that predicted class labels match
+  (probabilities may differ slightly due to numerical precision).
+
+--------------------------------------------------------------------------------
+22. QUICK REVISION NOTES
+--------------------------------------------------------------------------------
+
+CORE FORMULA:
+  C* = argmax_C [ log P(C) + SUM_i( log P(xi | C) ) ]
+
+WHAT NAIVE MEANS: Conditional independence of features given class.
+
+THREE VARIANTS:
+  Gaussian → continuous features (normal distribution assumed)
+  Multinomial → word counts, frequencies (non-negative integers)
+  Bernoulli → binary features (word present / absent)
+
+ZERO PROBABILITY FIX: Laplace Smoothing (alpha parameter)
+
+UNDERFLOW FIX: Compute in log space
+
+TRAINING IS JUST: Computing means + variances (Gaussian) or
+                  Computing word count ratios (Multinomial/Bernoulli)
+
+SCIKIT-LEARN CLASSES:
+  GaussianNB, MultinomialNB, BernoulliNB, ComplementNB, CategoricalNB
+
+KEY HYPERPARAMETERS:
+  alpha (smoothing), var_smoothing, class_prior, fit_prior, binarize
+
+BEST FOR: Text classification, small datasets, fast baselines, high-dim data.
+WORST FOR: Datasets with highly correlated features, complex non-linear patterns.
+
+GENERATIVE vs DISCRIMINATIVE:
+  Naive Bayes → Generative (models P(X|C) and P(C))
+  Logistic Regression → Discriminative (models P(C|X) directly)
+
+EVALUATION: Do NOT use accuracy alone on imbalanced datasets.
+  Use: Precision, Recall, F1, ROC-AUC, Confusion Matrix, Log Loss.
+
+--------------------------------------------------------------------------------
+23. KEY TAKEAWAYS
+--------------------------------------------------------------------------------
+
+1. Naive Bayes is not naive in its usefulness — it powers real systems at scale.
+
+2. The independence assumption is wrong in theory but often sufficient in practice,
+   especially for text classification.
+
+3. The most critical implementation detail is LOG-SPACE COMPUTATION to prevent
+   numerical underflow. Never multiply probabilities directly.
+
+4. LAPLACE SMOOTHING is non-negotiable in real implementations. Always add alpha.
+
+5. Choose the right variant based on your data type:
+   continuous → Gaussian, counts → Multinomial, binary → Bernoulli.
+
+6. Naive Bayes is an excellent baseline. If a more complex model can't beat it
+   significantly, the extra complexity may not be justified.
+
+7. In healthcare applications, probability calibration matters. Always use
+   CalibratedClassifierCV for medical use cases.
+
+8. Evaluation on imbalanced datasets (spam: ~15% positive; diabetes: ~35%)
+   requires F1 and ROC-AUC, NOT just accuracy.
+
+9. Naive Bayes is a GENERATIVE model — a fundamental concept that distinguishes
+   it from most modern ML algorithms and is a frequent interview topic.
+
+10. It is fast, interpretable, and handles high-dimensional data naturally —
+    qualities that make it relevant even in the era of deep learning.
+
+--------------------------------------------------------------------------------
+24. REFERENCES AND FURTHER READING
+--------------------------------------------------------------------------------
+
+FOUNDATIONAL PAPERS:
+  - Domingos, P. & Pazzani, M. (1997). "On the Optimality of the Simple Bayesian
+    Classifier under Zero-One Loss." Machine Learning, 29(2-3), 103-130.
+  - McCallum, A. & Nigam, K. (1998). "A Comparison of Event Models for Naive
+    Bayes Text Classification." AAAI Workshop on Learning for Text Categorization.
+  - Ng, A.Y. & Jordan, M.I. (2002). "On Discriminative vs Generative Classifiers:
+    A Comparison of Logistic Regression and Naive Bayes." NIPS 2002.
+
+KAGGLE DATASETS:
+  - SMS Spam Collection Dataset:
+    https://www.kaggle.com/datasets/uciml/sms-spam-collection-dataset
+  - Pima Indians Diabetes Database:
+    https://www.kaggle.com/datasets/uciml/pima-indians-diabetes-database
+
+SCIKIT-LEARN DOCUMENTATION:
+  - Naive Bayes User Guide:
+    https://scikit-learn.org/stable/modules/naive_bayes.html
+  - GaussianNB API:
+    https://scikit-learn.org/stable/modules/generated/sklearn.naive_bayes.GaussianNB.html
+  - CalibratedClassifierCV:
+    https://scikit-learn.org/stable/modules/calibration.html
+
+BOOKS:
+  - "Pattern Recognition and Machine Learning" — Bishop, C.M. (Chapter 4)
+  - "Introduction to Machine Learning with Python" — Müller & Guido (Chapter 2)
+  - "Hands-On Machine Learning with Scikit-Learn, Keras, and TensorFlow"
+    — Géron, A. (Chapter 3)
+
+ONLINE RESOURCES:
+  - Stanford CS229 Lecture Notes on Generative Learning Algorithms
+    (available free at cs229.stanford.edu)
+  - "A Visual Introduction to Naive Bayes" — Towards Data Science, Jay Alammar
+  - StatQuest with Josh Starmer — "Naive Bayes Clearly Explained" (YouTube)
+
+================================================================================
+END OF SCOPE DOCUMENT
+Topic: Naive Bayes Classifier
+Version: 1.0 | ML Internship Program
+================================================================================

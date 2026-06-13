@@ -1,0 +1,204 @@
+ML Study Material — Scope Document
+
+Logistic Regression
+FAANG-oriented
+Placement-ready
+MIT-level depth
+01
+Learning objectives
+
+Explain
+
+Why LR outputs probabilities, not hard scores
+
+The role of the sigmoid function and its saturation behavior
+
+Why log-loss is preferred over MSE for classification
+
+Decision boundary geometry in 2D and high-D
+
+Difference between LR and Linear Regression philosophically
+
+Derive (conceptually)
+
+MLE derivation of the log-loss objective
+
+Gradient of the loss w.r.t. weights
+
+Why no closed-form solution exists (unlike Linear Regression)
+
+L1 vs L2 regularization effects on weight distribution
+
+Relationship between LR and the Bernoulli log-likelihood
+
+Implement
+
+LR from scratch using gradient descent
+
+Cross-validation and threshold tuning
+
+Handling class imbalance (SMOTE, class weights)
+
+Multi-class extension via One-vs-Rest or Softmax
+
+Evaluation with precision-recall, ROC-AUC, F1
+
+02
+Subtopics
+
+Core concepts & intuition
+
+Binary classification framing
+
+Modeling the probability that an input belongs to the positive class using a linear decision boundary.
+
+Sigmoid function
+
+Maps any real-valued score to (0, 1); ensures output is a valid probability; introduces non-linearity at the output layer only.
+
+Odds & log-odds
+
+LR models the log-odds as a linear function of features; a unit change in a feature shifts log-odds by its coefficient.
+
+Decision boundary
+
+The hyperplane where P(y=1) = 0.5; linear in feature space by default; threshold is tunable.
+
+Mathematical formulation
+
+Hypothesis
+
+ŷ = σ(wᵀx + b) where σ(z) = 1 / (1 + e⁻ᶻ). Output is P(y=1 | x; w).
+
+Log-loss (binary cross-entropy)
+
+L = −[y log(ŷ) + (1−y) log(1−ŷ)]; derived via maximum likelihood on Bernoulli distribution.
+
+Gradient update rule
+
+∂L/∂w = (ŷ − y)x; deceptively clean — same form as Linear Regression but through a non-linear activation.
+
+Regularized objective
+
+J(w) = L + λ‖w‖ₚ; L1 (p=1) induces sparsity; L2 (p=2) shrinks weights smoothly toward zero.
+
+Algorithm variants & extensions
+
+Multinomial (Softmax) regression
+
+Generalizes LR to K classes using the softmax function; models joint class probabilities summing to 1.
+
+One-vs-Rest (OvR)
+
+Trains K binary classifiers; fast but class probabilities are not jointly calibrated.
+
+Penalized variants
+
+Elastic Net combines L1+L2; useful when features are correlated and sparsity is also desired.
+
+Stochastic & mini-batch GD
+
+Enables training on large datasets; noisy gradients act as implicit regularization.
+
+Implementation details
+
+Feature scaling
+
+Gradient descent converges faster with standardized features; unlike tree models, LR is sensitive to scale.
+
+Threshold tuning
+
+Default 0.5 is rarely optimal; tune using precision-recall tradeoff based on business cost asymmetry.
+
+Class imbalance handling
+
+Use class_weight='balanced', oversampling (SMOTE), or undersampling; evaluate with AUC-PR, not accuracy.
+
+Solvers
+
+liblinear (small data), lbfgs (multiclass), saga (large/sparse data); choice affects speed and convergence.
+
+Common failure modes
+
+Perfect separation
+
+When classes are linearly separable, MLE is undefined — weights diverge to infinity; regularization is the fix.
+
+Multicollinearity
+
+Correlated features cause unstable, uninterpretable coefficients; L2 regularization mitigates this.
+
+Non-linearly separable data
+
+LR decision boundary is always linear; use feature engineering or kernel methods to handle curved boundaries.
+
+Edge cases & misconceptions
+
+"LR is just for binary" (false)
+
+Softmax regression naturally extends it to multi-class; it's the backbone of the final layer in neural networks.
+
+Coefficients ≠ feature importance
+
+Without standardization, coefficient magnitudes are not comparable across features with different scales.
+
+Probability calibration
+
+LR outputs are relatively well-calibrated natively, unlike SVMs or tree models — a key advantage in risk settings.
+
+03
+Top 5 interview questions
+
+Q1Why is log-loss used instead of MSE for logistic regression?
+Expected angle: MLE derivation, convexity of log-loss vs non-convexity of MSE with sigmoid, probabilistic interpretation.
+
+Q2What happens when your training data is perfectly linearly separable?
+Expected angle: weights blow up to ∞, gradient never converges, fix via L2/L1 regularization, practical symptoms.
+
+Q3How does L1 regularization produce sparse solutions while L2 does not?
+Expected angle: geometry of constraint regions (diamond vs sphere), subgradient at zero for L1, Bayesian prior equivalence.
+
+Q4Your model has 99% accuracy on a fraud detection task. Is it good?
+Expected angle: class imbalance, accuracy paradox, pivot to AUC-PR and F1, threshold selection, business cost matrix.
+
+Q5How would you extend logistic regression to a 10-class classification problem?
+Expected angle: OvR vs Softmax, when each is appropriate, cross-entropy loss for K classes, weight matrix shape.
+
+04
+Prerequisite knowledge
+
+Mathematics
+
+Derivatives & chain rule
+Probability & Bayes' theorem
+Maximum Likelihood Estimation
+Convexity & optimization basics
+Linear algebra (dot products, hyperplanes)
+Exponential & logarithm properties
+ML fundamentals
+
+Linear regression & gradient descent
+Bias-variance tradeoff
+Train/val/test split & cross-validation
+Classification metrics (accuracy, precision, recall)
+Overfitting & regularization concept
+05
+Connections to other ML algorithms
+
+extends →
+Linear Regression — same linear combination of features; LR adds a sigmoid and swaps MSE for log-loss. Understanding both side-by-side clarifies what the activation and loss function each contribute.
+
+is a layer in →
+Neural Networks — the output layer of a binary classifier IS logistic regression. Softmax output layers are direct multinomial LR. Backprop through LR is the foundation of deep learning gradient flow.
+
+contrasts with →
+SVM — both find linear decision boundaries, but SVM maximizes margin geometrically while LR maximizes probabilistic likelihood. LR is better calibrated; SVM is more robust to outliers with appropriate kernel.
+
+generative vs →
+Naive Bayes — NB models the joint P(x, y) while LR models P(y|x) directly (discriminative). With sufficient data, LR typically outperforms; NB wins when data is scarce.
+
+baseline for →
+Gradient Boosting / Random Forest — LR is the standard interpretable baseline before deploying complex models. If LR beats XGBoost, the problem is likely linear and the ensemble is overfitting.
+
+special case of →
+Generalized Linear Models (GLM) — LR is a GLM with a Bernoulli distribution and logit link function. Understanding GLMs unifies LR with Poisson regression, probit regression, and others.
