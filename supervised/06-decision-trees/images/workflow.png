@@ -1,0 +1,23 @@
+Create a professional workflow diagram for Decision Tree Classification. Use connected rectangular boxes with arrows. Include the following sequence:
+
+Load Dataset
+↓
+Explore Dataset
+↓
+Data Preprocessing
+↓
+Train-Test Split
+↓
+Calculate Entropy / Gini Index
+↓
+Select Best Feature
+↓
+Build Decision Tree
+↓
+Generate Predictions
+↓
+Evaluate Model Performance
+↓
+Interpret Tree Structure
+
+Use a white background with green accents. Suitable for educational GitHub documentation and internship projects.

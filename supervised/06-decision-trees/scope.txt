@@ -1,0 +1,207 @@
+DECISION TREES
+
+==================================================
+
+1. OVERVIEW
+   ==================================================
+
+Decision Tree is a supervised machine learning algorithm used for classification and regression tasks. It builds a tree-like structure by recursively splitting data based on feature values.
+
+The objective is to create pure subsets and make accurate predictions.
+
+==================================================
+2. LEARNING OBJECTIVES
+======================
+
+• Understand Decision Tree fundamentals.
+• Learn tree structure terminology.
+• Understand Entropy and Information Gain.
+• Learn Gini Index.
+• Study tree construction process.
+• Understand pruning techniques.
+• Implement Decision Trees using Scikit-learn.
+
+==================================================
+3. TREE TERMINOLOGY
+===================
+
+Root Node
+
+* Top-most node of the tree.
+
+Parent Node
+
+* Node that splits into child nodes.
+
+Child Node
+
+* Node created after a split.
+
+Leaf Node
+
+* Final node that produces prediction.
+
+Branch
+
+* Represents a decision path.
+
+==================================================
+4. CORE CONCEPTS
+================
+
+A. Entropy
+
+Measures randomness or impurity.
+
+Formula:
+
+Entropy(S) = -Σ p(x) log₂ p(x)
+
+Interpretation:
+
+Entropy = 0
+→ Pure node
+
+Higher Entropy
+→ More disorder
+
+---
+
+B. Information Gain
+
+Measures reduction in uncertainty after splitting.
+
+Formula:
+
+Information Gain =
+Entropy(Parent) -
+Weighted Entropy(Children)
+
+Higher Information Gain
+→ Better split
+
+---
+
+C. Gini Index
+
+Measures impurity.
+
+Formula:
+
+Gini = 1 - Σ p(x)²
+
+Lower Gini
+→ Better split
+
+==================================================
+5. TREE CONSTRUCTION PROCESS
+============================
+
+1. Select best feature.
+2. Split dataset.
+3. Calculate impurity.
+4. Repeat recursively.
+5. Stop when stopping criteria are met.
+
+==================================================
+6. OVERFITTING
+==============
+
+Decision Trees can become overly complex.
+
+Symptoms:
+
+• High training accuracy.
+• Low testing accuracy.
+
+==================================================
+7. PRUNING TECHNIQUES
+=====================
+
+A. Pre-Pruning
+
+Stops growth early.
+
+Examples:
+
+• Maximum Depth
+• Minimum Samples Split
+
+---
+
+B. Post-Pruning
+
+Build full tree first.
+
+Remove unnecessary branches later.
+
+==================================================
+8. ADVANTAGES
+=============
+
+• Easy to understand.
+• Requires little preprocessing.
+• Handles numerical and categorical data.
+• Provides feature importance.
+
+==================================================
+9. LIMITATIONS
+==============
+
+• Prone to overfitting.
+• Sensitive to data variations.
+• Can create biased trees.
+
+==================================================
+10. APPLICATIONS
+================
+
+• Medical Diagnosis
+• Fraud Detection
+• Credit Risk Analysis
+• Loan Approval Systems
+• Customer Segmentation
+
+==================================================
+11. INTERVIEW QUESTIONS
+=======================
+
+Q1. What is a Decision Tree?
+
+Q2. What is Entropy?
+
+Q3. What is Information Gain?
+
+Q4. What is Gini Index?
+
+Q5. Difference between Entropy and Gini?
+
+Q6. What is pruning?
+
+Q7. Why do Decision Trees overfit?
+
+Q8. What is a root node?
+
+Q9. What is a leaf node?
+
+Q10. Advantages and limitations of Decision Trees?
+
+==================================================
+12. REVISION NOTES
+==================
+
+• Decision Trees use recursive splitting.
+• Entropy measures impurity.
+• Information Gain selects best feature.
+• Gini Index measures node purity.
+• Pruning reduces overfitting.
+• Trees are highly interpretable.
+
+==================================================
+13. REFERENCES
+==============
+
+1. Scikit-learn Documentation
+2. GeeksforGeeks
+3. Towards Data Science
+4. Medium Machine Learning Blogs
