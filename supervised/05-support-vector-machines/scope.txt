@@ -1,0 +1,164 @@
+SUPPORT VECTOR MACHINES (SVM)
+
+==================================================
+
+1. OVERVIEW
+   ==================================================
+
+Support Vector Machine (SVM) is a supervised machine learning algorithm used for classification and regression tasks. It works by finding the optimal hyperplane that maximizes the margin between different classes.
+
+SVM is highly effective in high-dimensional datasets and is widely used in classification problems.
+
+==================================================
+2. LEARNING OBJECTIVES
+======================
+
+• Understand Support Vector Machines.
+• Learn hyperplanes and margins.
+• Understand support vectors.
+• Differentiate between linear and non-linear SVM.
+• Learn kernel functions.
+• Implement SVM using Scikit-learn.
+• Evaluate classification performance.
+
+==================================================
+3. CORE CONCEPTS
+================
+
+A. Hyperplane
+
+* Decision boundary separating classes.
+* In 2D: Line
+* In 3D: Plane
+* Higher dimensions: Hyperplane
+
+B. Margin
+
+* Distance between hyperplane and nearest data points.
+* Larger margin generally improves generalization.
+
+C. Support Vectors
+
+* Data points closest to the decision boundary.
+* Directly influence hyperplane position.
+
+D. Kernel Trick
+
+* Converts non-linear data into higher-dimensional space.
+* Enables linear separation in transformed space.
+
+==================================================
+4. TYPES OF SVM
+===============
+
+1. Linear SVM
+
+   * Used for linearly separable data.
+
+2. Non-Linear SVM
+
+   * Uses kernels for complex datasets.
+
+==================================================
+5. KERNEL FUNCTIONS
+===================
+
+A. Linear Kernel
+B. Polynomial Kernel
+C. Radial Basis Function (RBF) Kernel
+D. Sigmoid Kernel
+
+Most commonly used:
+RBF Kernel
+
+==================================================
+6. IMPORTANT FORMULAE
+=====================
+
+Hyperplane Equation:
+
+w.x + b = 0
+
+Margin:
+
+Margin = 2 / ||w||
+
+Optimization Objective:
+
+Maximize Margin
+
+==================================================
+7. ADVANTAGES
+=============
+
+• Effective in high-dimensional spaces.
+• Works well with small datasets.
+• Handles non-linear classification.
+• Robust classification performance.
+• Strong mathematical foundation.
+
+==================================================
+8. LIMITATIONS
+==============
+
+• Computationally expensive for large datasets.
+• Sensitive to parameter tuning.
+• Difficult to interpret.
+• Requires feature scaling.
+
+==================================================
+9. APPLICATIONS
+===============
+
+• Face Recognition
+• Spam Detection
+• Text Classification
+• Medical Diagnosis
+• Image Classification
+• Bioinformatics
+
+==================================================
+10. INTERVIEW QUESTIONS
+=======================
+
+Q1. What is SVM?
+
+Q2. What is a hyperplane?
+
+Q3. What are support vectors?
+
+Q4. What is margin?
+
+Q5. What is the kernel trick?
+
+Q6. Difference between Linear and Non-Linear SVM?
+
+Q7. Why is feature scaling important?
+
+Q8. What is RBF Kernel?
+
+Q9. Hard Margin vs Soft Margin?
+
+Q10. Advantages and limitations of SVM?
+
+==================================================
+11. REVISION NOTES
+==================
+
+• SVM is a supervised learning algorithm.
+• Finds optimal separating hyperplane.
+• Support vectors define decision boundary.
+• Margin should be maximized.
+• Kernels enable non-linear classification.
+• RBF is the most commonly used kernel.
+• Feature scaling is essential.
+• Effective for classification tasks.
+
+==================================================
+12. REFERENCES
+==============
+
+1. Scikit-learn Documentation
+2. GeeksforGeeks
+3. Towards Data Science
+4. Medium Machine Learning Blogs

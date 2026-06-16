@@ -1,0 +1,25 @@
+Create a professional workflow diagram for Support Vector Machines (SVM). Use connected rectangular boxes with arrows. Include the following sequence:
+
+Load Dataset
+↓
+Explore Dataset
+↓
+Data Preprocessing
+↓
+Feature Scaling
+↓
+Train-Test Split
+↓
+Find Optimal Hyperplane
+↓
+Identify Support Vectors
+↓
+Train SVM Model
+↓
+Make Predictions
+↓
+Evaluate Performance
+↓
+Interpret Results
+
+Use a white background with blue accents. Suitable for educational GitHub documentation and internship projects.
