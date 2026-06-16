@@ -1,0 +1,153 @@
+MACHINE LEARNING MODEL EVALUATION
+
+==================================================
+
+1. OVERVIEW
+   ==================================================
+
+Model Evaluation is the process of measuring how well a machine learning model performs on unseen data.
+
+It helps determine whether a model generalizes effectively and assists in selecting the best model.
+
+==================================================
+2. LEARNING OBJECTIVES
+======================
+
+• Understand evaluation metrics.
+• Learn classification metrics.
+• Learn regression metrics.
+• Understand confusion matrix.
+• Learn ROC and AUC.
+• Evaluate clustering models.
+• Compare machine learning models.
+
+==================================================
+3. SUPERVISED LEARNING EVALUATION
+=================================
+
+A. Accuracy
+
+Formula:
+
+Accuracy = (TP + TN) / (TP + TN + FP + FN)
+
+Advantages:
+• Easy to interpret.
+
+Limitations:
+• Can be misleading for imbalanced datasets.
+
+---
+
+B. Precision
+
+Formula:
+
+Precision = TP / (TP + FP)
+
+---
+
+C. Recall
+
+Formula:
+
+Recall = TP / (TP + FN)
+
+---
+
+D. F1 Score
+
+Formula:
+
+F1 = 2 × (Precision × Recall) / (Precision + Recall)
+
+==================================================
+4. CONFUSION MATRIX
+===================
+
+TP → True Positive
+
+TN → True Negative
+
+FP → False Positive
+
+FN → False Negative
+
+==================================================
+5. ROC CURVE & AUC
+==================
+
+ROC:
+Receiver Operating Characteristic Curve
+
+AUC:
+Area Under Curve
+
+1.0 → Perfect Model
+
+0.5 → Random Guessing
+
+==================================================
+6. REGRESSION METRICS
+=====================
+
+MAE
+MSE
+RMSE
+R² Score
+
+==================================================
+7. UNSUPERVISED LEARNING EVALUATION
+===================================
+
+Silhouette Score
+Davies-Bouldin Index
+Calinski-Harabasz Index
+
+==================================================
+8. APPLICATIONS
+===============
+
+• Model Selection
+• Hyperparameter Tuning
+• Deployment Validation
+
+==================================================
+9. INTERVIEW QUESTIONS
+======================
+
+Q1. Why is accuracy misleading?
+
+Q2. Precision vs Recall?
+
+Q3. When should F1 Score be used?
+
+Q4. What is ROC-AUC?
+
+Q5. What is Silhouette Score?
+
+Q6. Difference between MAE and RMSE?
+
+Q7. What is R² Score?
+
+Q8. How do we evaluate clustering models?
+
+==================================================
+10. REVISION NOTES
+==================
+
+• Accuracy alone is insufficient.
+• Precision measures correctness.
+• Recall measures detection capability.
+• F1 balances Precision and Recall.
+• ROC-AUC evaluates classification quality.
+• Silhouette Score evaluates clustering quality.
+
+==================================================
+11. REFERENCES
+==============
+
+1. Scikit-learn Documentation
+2. GeeksforGeeks
+3. Towards Data Science
+4. Medium Machine Learning Blogs

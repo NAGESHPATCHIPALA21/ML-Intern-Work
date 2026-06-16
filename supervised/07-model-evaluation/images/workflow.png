@@ -1,0 +1,23 @@
+Create a professional workflow diagram for Machine Learning Model Evaluation. Use connected rectangular boxes with arrows. Include the following sequence:
+
+Train Machine Learning Model
+↓
+Generate Predictions
+↓
+Calculate Evaluation Metrics
+↓
+Create Confusion Matrix
+↓
+Compute Accuracy, Precision, Recall, F1 Score
+↓
+Plot ROC Curve and Calculate AUC
+↓
+Evaluate Clustering Metrics (Silhouette Score, Davies-Bouldin Index)
+↓
+Compare Model Performance
+↓
+Interpret Results
+↓
+Select Best Model
+
+Use a white background with orange accents. Suitable for educational GitHub documentation and internship projects.
